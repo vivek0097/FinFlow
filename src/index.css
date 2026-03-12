@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* 1. Theme Configuration */
+@theme {
+  --color-primary: #4f46e5;
+  --color-secondary: #10b981;
+  --color-danger: #ef4444;
+}
+
+/* 2. Global Base Styles */
+@layer base {
+  :root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  }
+
+  html, body {
+    /* Pure application ka background aur text color fix */
+    @apply bg-slate-50 text-slate-900 transition-colors duration-300;
+  }
+
+  /* Dark mode logic for root elements */
+  .dark body, .dark html {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  /* Custom Utility: Card Style (Aap ise Dashboard cards par use kar sakte hain) */
+  .card-style {
+    @apply bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm rounded-3xl transition-all;
+  }
+}
+
+/* 3. AG Grid Quartz Customization (Light & Dark) */
+.ag-theme-quartz {
+    /* Global Quartz Variables */
+    --ag-active-color: var(--color-primary);
+    --ag-selected-row-background-color: rgba(79, 70, 229, 0.05);
+    --ag-border-radius: 20px;
+    --ag-font-family: 'Inter', sans-serif;
+    
+    /* Mouse selection enable karne ke liye */
+    user-select: text !important;
+}
+
+/* Automatic Dark Mode for AG Grid */
+.dark .ag-theme-quartz {
+    --ag-background-color: #0f172a; /* Slate-900 */
+    --ag-foreground-color: #f8fafc;
+    --ag-header-background-color: #1e293b; /* Slate-800 */
+    --ag-header-foreground-color: #94a3b8;
+    --ag-border-color: #1e293b;
+    --ag-row-hover-color: rgba(255, 255, 255, 0.03);
+    --ag-active-color: #818cf8; /* Indigo-400 for better visibility in dark mode */
+}
+
+/* 4. Custom Component Overrides (Optional) */
+/* Agar koi scrollbar custom karni ho toh yahan add karein */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+}

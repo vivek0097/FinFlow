@@ -1,0 +1,76 @@
+
+
+
+import React from 'react';
+import { useTheme } from '../../context/ThemeContext';
+import { Sun, Moon, Bell, Menu, User, Plus } from 'lucide-react';
+
+const Navbar = ({ onMenuClick, onAddClick }) => {
+  const { isDark, toggleTheme } = useTheme();
+
+  return (
+    <nav className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 z-40 flex items-center justify-between px-6 transition-all duration-300">
+      
+      {/* Left Section: Mobile Menu & Breadcrumbs */}
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={onMenuClick}
+          className="p-2.5 -ml-2 md:hidden text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div className="hidden md:block">
+          <h2 className="text-[13px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Financial Overview</h2>
+          <div className="flex items-center gap-1.5">
+             <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+             </span>
+             <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-black italic">FinFlow AI Active</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right Section: Actions & Profile */}
+      <div className="flex items-center gap-2 md:gap-4">
+        
+        {/* Quick Add Button - Only visible on Tablet/Desktop */}
+        <button 
+          onClick={onAddClick}
+          className="hidden sm:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-black transition-all active:scale-95 shadow-lg shadow-indigo-200 dark:shadow-none mr-2"
+        >
+          <Plus size={16} strokeWidth={3} />
+          <span>NEW</span>
+        </button>
+
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme}
+          className="p-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-yellow-400 hover:scale-110 active:scale-90 transition-all border border-gray-100 dark:border-white/5"
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
+        {/* Notifications */}
+        <button className="p-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 relative border border-gray-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all">
+          <Bell size={18} />
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-950"></span>
+        </button>
+        
+        {/* Profile Section */}
+        <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-100 dark:border-white/10">
+          <div className="hidden lg:block text-right">
+             <p className="text-[12px] font-black dark:text-white leading-none">John Doe</p>
+             <p className="text-[10px] text-slate-400 font-medium">Pro Member</p>
+          </div>
+          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-indigo-200 dark:shadow-none font-bold cursor-pointer hover:rotate-3 transition-transform">
+            <User size={20} />
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
