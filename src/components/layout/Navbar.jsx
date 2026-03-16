@@ -2,10 +2,13 @@
 
 
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon, Bell, Menu, User, Plus } from 'lucide-react';
+
+import { Sun, Moon, Bell, Menu, User, Plus, LogOut } from 'lucide-react';
 
 const Navbar = ({ onMenuClick, onAddClick }) => {
+  const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   return (
@@ -59,7 +62,7 @@ const Navbar = ({ onMenuClick, onAddClick }) => {
         </button>
         
         {/* Profile Section */}
-        <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-100 dark:border-white/10">
+        {/* <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-100 dark:border-white/10">
           <div className="hidden lg:block text-right">
              <p className="text-[12px] font-black dark:text-white leading-none">John Doe</p>
              <p className="text-[10px] text-slate-400 font-medium">Pro Member</p>
@@ -67,7 +70,23 @@ const Navbar = ({ onMenuClick, onAddClick }) => {
           <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-indigo-200 dark:shadow-none font-bold cursor-pointer hover:rotate-3 transition-transform">
             <User size={20} />
           </div>
-        </div>
+        </div> */}
+
+        <div className="flex items-center gap-4">
+        {user ? (
+          <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-2 rounded-xl">
+            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+              {user.name.charAt(0)}
+            </div>
+            <span className="hidden md:block font-medium dark:text-white">{user.name}</span>
+            <button onClick={logout} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all">
+              <LogOut size={20} />
+            </button>
+          </div>
+        ) : (
+          <button className="bg-indigo-600 text-white px-6 py-2 rounded-xl">Login</button>
+        )}
+      </div>
       </div>
     </nav>
   );
