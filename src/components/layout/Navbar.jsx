@@ -12,8 +12,8 @@ const Navbar = ({ onMenuClick, onAddClick }) => {
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <nav className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 z-40 flex items-center justify-between px-6 transition-all duration-300">
-      
+    // <nav className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 z-40 flex items-center justify-between px-6 transition-all duration-300">
+      <nav className="fixed top-0 right-0 left-0 md:left-20 h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 z-40 flex items-center justify-between px-6 transition-all duration-300">
       {/* Left Section: Mobile Menu & Breadcrumbs */}
       <div className="flex items-center gap-3">
         <button 
@@ -61,16 +61,7 @@ const Navbar = ({ onMenuClick, onAddClick }) => {
           <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-950"></span>
         </button>
         
-        {/* Profile Section */}
-        {/* <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-100 dark:border-white/10">
-          <div className="hidden lg:block text-right">
-             <p className="text-[12px] font-black dark:text-white leading-none">John Doe</p>
-             <p className="text-[10px] text-slate-400 font-medium">Pro Member</p>
-          </div>
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-indigo-200 dark:shadow-none font-bold cursor-pointer hover:rotate-3 transition-transform">
-            <User size={20} />
-          </div>
-        </div> */}
+
 
         <div className="flex items-center gap-4">
         {user ? (

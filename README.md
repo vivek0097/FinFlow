@@ -1,16 +1,30 @@
 # React + Vite
+## 📂 2. Frontend Documentation (`client/README.md`)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Isme hum React 19, AG Grid, aur UI components ki details daalenge.
 
-Currently, two official plugins are available:
+```markdown
+# FinFlow Frontend 💻
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+A modern financial management dashboard built with React 19.
 
-## React Compiler
+## Tech Stack
+* **React 19** - Frontend library
+* **Tailwind CSS** - For styling
+* **Lucide React** - Iconography
+* **AG Grid** - For high-performance data tables (Monthly Punch Matrix)
+* **Axios** - API requests
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Key Features
+* **Authentication UI:** Login, Register, and Forgot Password flow.
+* **Dashboard:** Financial reporting and administrative data management.
+* **OTP Flow:** Integrated with backend reset password logic.
 
-## Expanding the ESLint configuration
+## Setup
+1. `cd client`
+2. `npm install`
+3. `npm run dev`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Available Scripts
+* `npm run dev` - Runs the app in development mode.
+* `npm run build` - Builds the app for production.
