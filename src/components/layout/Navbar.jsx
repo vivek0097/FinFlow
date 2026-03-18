@@ -4,12 +4,15 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-
 import { Sun, Moon, Bell, Menu, User, Plus, LogOut } from 'lucide-react';
+
+
 
 const Navbar = ({ onMenuClick, onAddClick }) => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+
+
 
   return (
     // <nav className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 z-40 flex items-center justify-between px-6 transition-all duration-300">
