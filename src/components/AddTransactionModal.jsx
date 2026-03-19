@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, IndianRupee, Tag, Calendar, Layers, CheckCircle2 } from 'lucide-react';
 import useFetch from '../hooks/useFetch';
+import moment from 'moment';
 
-const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
+
+
+const AddTransactionModal = ({ isOpen, onClose, onRefresh, editData }) => {
+  const isEdit = !!editData;
+
   const [formData, setFormData] = useState({
-    title: '',
+   description: '',
     amount: '',
     type: 'expense',
     category: 'General',
-    date: new Date().toISOString().split('T')[0]
+    date: moment().format('YYYY-MM-DD'),
   });
 
   const { sendRequest, loading, error } = useFetch();
@@ -16,18 +21,33 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
 
   const categories = ['General', 'Salary', 'Food', 'Rent', 'Shopping', 'Bills', 'Freelance', 'Health'];
 
+//----for  modify--------------
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        description: editData.description || editData.desc,
+        amount: editData.amount,
+        type: editData.type,
+        category: editData.category || editData.cat,
+        date: moment(editData.date).format('YYYY-MM-DD')
+      });
+    }
+  }, [editData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Backend Route: /transactions/add
-      await sendRequest('/transactions/add', 'POST', formData);
+       const url = isEdit ? `/transactions/${editData._id}` : '/transactions';
+      const method = isEdit ? 'PUT' : 'POST';
+      await sendRequest(url, method, formData);
+      // await sendRequest('/transactions', 'POST', formData);
       setSuccess(true);
       
-      // 1.5 second baad modal close aur data refresh
+
       setTimeout(() => {
         setSuccess(false);
-        setFormData({ title: '', amount: '', type: 'expense', category: 'General', date: new Date().toISOString().split('T')[0] });
-        onRefresh && onRefresh(); // Dashboard data update karne ke liye
+        setFormData({ description: '', amount: '', type: 'expense', category: 'General', date: moment(formData.date).toISOString() });
+        onRefresh && onRefresh(); 
         onClose();
       }, 1500);
     } catch (err) {
@@ -91,8 +111,8 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh }) => {
               required
               placeholder="e.g. Amazon Web Services"
               className="w-full px-5 py-3.5 bg-slate-50 dark:bg-white/5 border border-transparent focus:border-indigo-500/30 rounded-2xl outline-none transition-all text-sm font-bold"
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
             />
           </div>
 

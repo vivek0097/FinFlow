@@ -1,26 +1,72 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState,useEffect, useMemo, useCallback, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { Download, Search } from 'lucide-react';
+import { Download, Search, Calendar,PencilLine } from 'lucide-react';
+import useFetch from '../hooks/useFetch';
+import { AddTransactionModal } from '../components';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import moment from 'moment';
+
+
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const Audit = () => {
   const gridRef = useRef(); 
+  const { sendRequest, loading } = useFetch();
+  const [startDate, setStartDate] = useState(moment().startOf('month').toDate());
+  const [endDate, setEndDate] = useState(new Date());
+  const [rowData, setRowData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState(null);
 
-  const [rowData] = useState([
-    { date: '2026-03-10', desc: 'Amazon Cloud Services', cat: 'Software', amount: 4500, type: 'expense' },
-    { date: '2026-03-09', desc: 'Client Payment - Project X', cat: 'Freelance', amount: 85000, type: 'income' },
-    { date: '2026-03-08', desc: 'Starbucks Coffee', cat: 'Food', amount: 450, type: 'expense' },
-    { date: '2026-03-05', desc: 'HDFC Home Loan EMI', cat: 'Bills', amount: 25000, type: 'expense' },
-    { date: '2026-03-04', desc: 'Netflix Subscription', cat: 'Entertainment', amount: 649, type: 'expense' },
-  ]);
+// 1. Data Fetching
+  // const loadTransactions = useCallback(async () => {
+  //   const data = await sendRequest('/transactions', 'GET');
+  //   const formattedData = data.map(item => ({ ...item, desc: item.description }));
+  //   setRowData(formattedData);
+  // }, [sendRequest]);
+
+  // useEffect(() => { loadTransactions(); }, [loadTransactions]);
+
+
+// 2. Validation Handler: Jab From Date badle
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+    if (moment(date).isAfter(endDate)) {
+      setEndDate(date);
+    }
+  };
+
+
+  const loadTransactions = async () => {
+   
+    const from = moment(startDate).format('DD/MMM/YYYY');
+    const to = moment(endDate).format('DD/MMM/YYYY');
+    
+    const data = await sendRequest(`/transactions?from=${from}&to=${to}`, 'GET');
+    setRowData(data);
+  };
+
+  useEffect(() => {
+    loadTransactions();
+  }, [startDate, endDate]);
 
   const [columnDefs] = useState([
-    { field: 'date', headerName: 'Date', filter: true, flex: 1, minWidth: 120 },
-    { field: 'desc', headerName: 'Description', filter: 'agTextColumnFilter', flex: 2, minWidth: 200, cellClass: 'font-bold' },
+   { 
+        field: 'date', 
+        headerName: 'Date', 
+        filter: true, 
+        flex: 1, 
+        minWidth: 140,
+        valueFormatter: (params) => {
+          return params.value ? moment(params.value).format('DD/MMM/YYYY') : '';
+        }
+      },
+    { field: 'description', headerName: 'Description', filter: 'agTextColumnFilter', flex: 2, minWidth: 200, cellClass: 'font-bold' },
     { 
-      field: 'cat', 
+      field: 'category', 
       headerName: 'Category', 
       flex: 1,
       minWidth: 130,
@@ -42,6 +88,22 @@ const Audit = () => {
       },
       valueFormatter: (p) => (p.data.type === 'income' ? '+ ' : '- ') + '₹' + p.value.toLocaleString()
     },
+    {
+    headerName: 'Actions',
+    field: 'actions',
+    width: 100,
+    cellRenderer: (params) => (
+      <button 
+        onClick={() => {
+          setSelectedTx(params.data); 
+          setIsModalOpen(true); 
+        }}
+        className="p-2 hover:bg-indigo-50 text-indigo-600 rounded-lg transition-colors"
+      >
+        <PencilLine size={16} className="text-indigo-500" />
+      </button>
+    )
+  }
   ]);
 
   const defaultColDef = useMemo(() => ({
@@ -61,6 +123,9 @@ const Audit = () => {
   };
 
   return (
+    <>
+
+
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -77,17 +142,57 @@ const Audit = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-gray-100 dark:border-slate-800 flex items-center shadow-sm">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search transactions..." 
-            className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 outline-none dark:text-white text-sm"
-            onChange={onFilterTextChange}
-          />
+
+
+
+{/* Date Filter Bar */}
+      <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Calendar size={16} className="text-indigo-500" />
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Range:</span>
         </div>
+        
+      {/* FROM DATE PICKER */}
+      <div className="flex flex-col">
+        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 ml-1">From</label>
+        <DatePicker
+          selected={startDate}
+          onChange={handleStartDateChange}
+          selectsStart
+          startDate={startDate}
+          endDate={endDate}
+          dateFormat="dd/MMM/yyyy"
+          maxDate={new Date()} // Future ki dates disable
+          className="bg-slate-50 dark:bg-white/5 border-none rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 ring-indigo-500/20 w-40"
+        />
       </div>
+
+      <div className="text-slate-300 mt-4">—</div>
+
+      {/* TO DATE PICKER */}
+      <div className="flex flex-col">
+        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 ml-1">To</label>
+        <DatePicker
+          selected={endDate}
+          onChange={(date) => setEndDate(date)}
+          selectsEnd
+          startDate={startDate}
+          endDate={endDate}
+          minDate={startDate} 
+          maxDate={new Date()} 
+          dateFormat="dd/MMM/yyyy"
+          className="bg-slate-50 dark:bg-white/5 border-none rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 ring-indigo-500/20 w-40"
+        />
+      </div>
+        
+        <button 
+          onClick={loadTransactions}
+          className="ml-auto bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+        >
+          Apply Filter
+        </button>
+      </div>
+
 
       <div 
         className="ag-theme-quartz dark:ag-theme-quartz-dark shadow-xl rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800" 
@@ -108,6 +213,17 @@ const Audit = () => {
         />
       </div>
     </div>
+    {/* ====form ==add transaction================ */}
+    <AddTransactionModal 
+      isOpen={isModalOpen} 
+      onClose={() => {
+        setIsModalOpen(false);
+        setSelectedTx(null);
+      }} 
+      editData={selectedTx} 
+      onRefresh={loadTransactions} 
+    />
+    </>
   );
 };
 
