@@ -93,6 +93,7 @@ const Audit = () => {
     field: 'actions',
     width: 100,
     cellRenderer: (params) => (
+      <>
       <button 
         onClick={() => {
           setSelectedTx(params.data); 
@@ -102,6 +103,8 @@ const Audit = () => {
       >
         <PencilLine size={16} className="text-indigo-500" />
       </button>
+      <button>Delete</button>
+      </>
     )
   }
   ]);
