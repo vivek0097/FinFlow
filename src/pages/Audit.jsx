@@ -1,13 +1,13 @@
 import React, { useState,useEffect, useMemo, useCallback, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { Download, Search, Calendar,PencilLine } from 'lucide-react';
+import { Download, Search, Calendar,PencilLine, Trash2 } from 'lucide-react';
 import useFetch from '../hooks/useFetch';
 import { AddTransactionModal } from '../components';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
-
+import toast from 'react-hot-toast';
 
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -21,14 +21,7 @@ const Audit = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState(null);
 
-// 1. Data Fetching
-  // const loadTransactions = useCallback(async () => {
-  //   const data = await sendRequest('/transactions', 'GET');
-  //   const formattedData = data.map(item => ({ ...item, desc: item.description }));
-  //   setRowData(formattedData);
-  // }, [sendRequest]);
 
-  // useEffect(() => { loadTransactions(); }, [loadTransactions]);
 
 
 // 2. Validation Handler: Jab From Date badle
@@ -93,6 +86,8 @@ const Audit = () => {
     field: 'actions',
     width: 100,
     cellRenderer: (params) => (
+      <div className="flex items-center gap-2">
+        {/* ---edit  button */}
       <button 
         onClick={() => {
           setSelectedTx(params.data); 
@@ -102,6 +97,16 @@ const Audit = () => {
       >
         <PencilLine size={16} className="text-indigo-500" />
       </button>
+
+      {/* DELETE BUTTON */}
+        <button 
+          onClick={() => handleDelete(params.data._id)} 
+          className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
+          title="Delete"
+        >
+          <Trash2 size={16} className="text-rose-500" />
+        </button>
+        </div>
     )
   }
   ]);
@@ -121,6 +126,34 @@ const Audit = () => {
   const onFilterTextChange = (e) => {
     gridRef.current.api.setGridOption('quickFilterText', e.target.value);
   };
+
+
+
+//---delete  handler fun-------------------
+const handleDelete = async (id) => {
+  // Debugging ke liye id check karein
+  console.log("Deleting ID:", id); 
+
+  if (!id) {
+    toast.error("Bhai, Transaction ID hi nahi mili!");
+    return;
+  }
+
+  if (window.confirm("Do you want to delete this record?")) {
+    const tid = toast.loading("Deleting...");
+    try {
+      // DELETE request mein aksar 2nd parameter (body) null bhejna padta hai 
+      // agar useFetch axios.delete(url, body) follow kar raha hai.
+      await sendRequest(`/transactions/${id}`, 'DELETE', null); 
+      
+      toast.success("Delete ho gaya!", { id: tid });
+      loadTransactions(); 
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Error: " + (err.response?.data?.msg || err.message), { id: tid });
+    }
+  }
+};
 
   return (
     <>
