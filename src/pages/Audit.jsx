@@ -1,7 +1,10 @@
 import React, { useState,useEffect, useMemo, useCallback, useRef } from 'react';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useOutletContext } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { Download, Search, Calendar,PencilLine, Trash2 } from 'lucide-react';
+import { Download, Search, Calendar,PencilLine, Trash2,  FileText, FileSpreadsheet,Trash} from 'lucide-react';
 import useFetch from '../hooks/useFetch';
 import { AddTransactionModal } from '../components';
 import DatePicker from 'react-datepicker';
@@ -15,12 +18,14 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const Audit = () => {
   const gridRef = useRef(); 
   const { sendRequest, loading } = useFetch();
+  const context = useOutletContext() || {};
+  const refreshTrigger = context.refreshTrigger || 0;
   const [startDate, setStartDate] = useState(moment().startOf('month').toDate());
   const [endDate, setEndDate] = useState(new Date());
   const [rowData, setRowData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState(null);
-
+  const [selectedTotal, setSelectedTotal] = useState(0);
 
 
 
@@ -39,14 +44,44 @@ const Audit = () => {
     const to = moment(endDate).format('DD/MMM/YYYY');
     
     const data = await sendRequest(`/transactions?from=${from}&to=${to}`, 'GET');
-    setRowData(data);
+    // setRowData(data);
+   if (data && data.status === 1) {
+    setRowData(data.data); 
+  }else {
+      setRowData([]);
+    }
   };
 
   useEffect(() => {
     loadTransactions();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, refreshTrigger]);
+
+
+
+//=====for  row  selection===================
+const onSelectionChanged = useCallback(() => {
+    const selectedNodes = gridRef.current.api.getSelectedNodes();
+    const total = selectedNodes.reduce((sum, node) => {
+      const amt = Number(node.data.amount) || 0;
+      return node.data.type === 'income' ? sum + amt : sum - amt;
+    }, 0);
+    setSelectedTotal(total);
+  }, []);
+
 
   const [columnDefs] = useState([
+    {
+      headerName: '#',
+      field: 'srNo',
+      width: 80,
+      pinned: 'left',
+      lockPinned: true, 
+      checkboxSelection: true,
+      headerCheckboxSelection: true, 
+      valueGetter: (params) => params.node.rowIndex + 1,
+      cellClass: 'font-bold text-slate-400',
+      suppressMovable: true,
+    },
    { 
         field: 'date', 
         headerName: 'Date', 
@@ -127,33 +162,122 @@ const Audit = () => {
     gridRef.current.api.setGridOption('quickFilterText', e.target.value);
   };
 
+//---export to pdf==============
+const exportPDF = () => {
+  try {
+    const doc = new jsPDF(); // New instance
 
+    // Title setup
+    doc.setFontSize(18);
+    doc.text("FinFlow Audit Report", 14, 15);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Report Date: ${moment().format('DD/MMM/YYYY HH:mm')}`, 14, 22);
 
+    // Grid se data nikalna
+    const tableData = [];
+    // Hum sirf filtered data bhejenge jo screen par dikh raha hai
+    gridRef.current.api.forEachNodeAfterFilterAndSort((node, index) => {
+      const d = node.data;
+      tableData.push([
+        index + 1,
+        moment(d.date).format('DD/MMM/YYYY'),
+        d.description,
+        d.category,
+        `${d.type === 'income' ? '+' : '-'} Rs.${d.amount}`
+      ]);
+    });
+
+    if (tableData.length === 0) {
+      return toast.error("Bhai, table mein koi data hi nahi hai!");
+    }
+
+    // AutoTable v5 syntax
+    autoTable(doc, {
+      startY: 30,
+      head: [['#', 'Date', 'Description', 'Category', 'Amount']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [79, 70, 229], 
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      columnStyles: {
+        0: { cellWidth: 15, halign: 'center' },
+        4: { halign: 'right', fontStyle: 'bold' }
+      },
+      didDrawPage: (data) => {
+        // Footer (Page Number)
+        const str = "Page " + doc.internal.getNumberOfPages();
+        doc.setFontSize(10);
+        doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`FinFlow_Audit_${moment().format('YYYYMMDD')}.pdf`);
+    toast.success("PDF Downloaded! 📄");
+
+  } catch (error) {
+    console.error("PDF Export Error:", error);
+    toast.error("PDF generate nahi ho payi: " + error.message);
+  }
+};
 //---delete  handler fun-------------------
 const handleDelete = async (id) => {
-  // Debugging ke liye id check karein
-  console.log("Deleting ID:", id); 
-
-  if (!id) {
-    toast.error("Bhai, Transaction ID hi nahi mili!");
-    return;
-  }
-
-  if (window.confirm("Do you want to delete this record?")) {
+  if (window.confirm("Bhai, pakka delete karna hai?")) {
     const tid = toast.loading("Deleting...");
     try {
-      // DELETE request mein aksar 2nd parameter (body) null bhejna padta hai 
-      // agar useFetch axios.delete(url, body) follow kar raha hai.
-      await sendRequest(`/transactions/${id}`, 'DELETE', null); 
+      // Ab sirf URL aur Method bhejo, body hook khud handle kar lega
+      await sendRequest(`/transactions/${id}`, 'DELETE'); 
       
-      toast.success("Delete ho gaya!", { id: tid });
+      toast.success("Transaction deleted!", { id: tid });
       loadTransactions(); 
     } catch (err) {
-      console.error("Delete failed:", err);
-      toast.error("Error: " + (err.response?.data?.msg || err.message), { id: tid });
+       toast.error("Error: " + (err.response?.data?.msg || "Failed"), { id: tid });
     }
   }
 };
+
+
+
+// Bulk Delete Handler
+const handleBulkDelete = async () => {
+  const selectedNodes = gridRef.current.api.getSelectedNodes();
+  const selectedIds = selectedNodes.map(node => node.data._id);
+
+  if (selectedIds.length === 0) {
+    return toast.error("Bhai, pehle kuch select toh karo!");
+  }
+
+  // --- DEBUGGING: Payload check karne ke liye ---
+  console.log("Deleting IDs:", selectedIds);
+  const payload = { ids: selectedIds }; 
+  console.log("Final Payload:", payload);
+  // ----------------------------------------------
+
+  if (window.confirm(`Kya aap ye ${selectedIds.length} transactions delete karna chahte hain?`)) {
+    const tid = toast.loading("Bulk deleting...");
+    try {
+      // Yahan check karo ki 'ids' object hi ja raha hai
+      const res = await sendRequest('/transactions/bulk', 'DELETE', payload); 
+      
+      if (res && res.status === 1) {
+        toast.success(res.msg, { id: tid });
+        gridRef.current.api.deselectAll();
+        loadTransactions(); 
+      } else {
+        toast.error(res?.msg || "Delete failed", { id: tid });
+      }
+    } catch (err) {
+      console.error("Bulk Delete Error:", err);
+      toast.error("Network Error!", { id: tid });
+    }
+  }
+};
+
+
 
   return (
     <>
@@ -165,17 +289,49 @@ const handleDelete = async (id) => {
           <h1 className="text-2xl font-black text-slate-800 dark:text-white">Audit Log</h1>
           <p className="text-sm text-slate-500">Manage and track every transaction</p>
         </div>
-        
+        <div className="flex items-center gap-3">
+        <button 
+        onClick={handleBulkDelete}
+        className="flex items-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 px-5 py-2.5 rounded-2xl text-sm font-bold border border-rose-200 transition-all active:scale-95"
+      >
+        <Trash2 size={18} /> Delete Selected
+      </button>
+
+          <button 
+        onClick={exportPDF}
+        className="flex items-center gap-2 bg-slate-800 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer"
+      >
+        <Download size={14} /> <FileText  size={18} color='white'/>
+      </button>
         {/* Export Button  */}
         <button 
           onClick={onBtnExport}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95"
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95 cursor-pointer"
         >
-          <Download size={18} /> Export CSV
+          <Download size={18} /> <FileSpreadsheet  size={18} color='white'/>
         </button>
+        </div>
       </div>
 
-
+{/* Summary Bar - NAYA SECTION */}
+        <div className="flex items-center justify-between bg-indigo-50/50 dark:bg-white/5 border border-indigo-100 dark:border-white/10 p-4 rounded-2xl">
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected Transactions</p>
+              <p className="text-xl font-black text-slate-700 dark:text-white">
+                {gridRef.current?.api?.getSelectedNodes().length || 0}
+              </p>
+            </div>
+            <div className="h-10 w-[1px] bg-slate-200 dark:bg-white/10" />
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Net Amount</p>
+              <p className={`text-xl font-black ${selectedTotal >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                {selectedTotal >= 0 ? '+' : '-'} ₹{Math.abs(selectedTotal).toLocaleString()}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 font-medium italic">* Select rows to see live calculation</p>
+        </div>
 
 
 {/* Date Filter Bar */}
@@ -236,6 +392,11 @@ const handleDelete = async (id) => {
           rowData={rowData}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
+
+          rowSelection="multiple" 
+           suppressRowClickSelection={false} 
+           onSelectionChanged={onSelectionChanged}
+
           animateRows={true}
           pagination={true}
           paginationPageSize={10}

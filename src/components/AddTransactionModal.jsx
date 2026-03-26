@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, IndianRupee, Tag, Calendar, Layers, CheckCircle2 } from 'lucide-react';
 import useFetch from '../hooks/useFetch';
 import moment from 'moment';
@@ -7,7 +8,7 @@ import moment from 'moment';
 
 const AddTransactionModal = ({ isOpen, onClose, onRefresh, editData }) => {
   const isEdit = !!editData;
-
+ const navigate=  useNavigate();
   const [formData, setFormData] = useState({
    description: '',
     amount: '',
@@ -49,6 +50,7 @@ const AddTransactionModal = ({ isOpen, onClose, onRefresh, editData }) => {
         setFormData({ description: '', amount: '', type: 'expense', category: 'General', date: moment(formData.date).toISOString() });
         onRefresh && onRefresh(); 
         onClose();
+        navigate('/audit')
       }, 1500);
     } catch (err) {
       console.error("Transaction Error:", err);

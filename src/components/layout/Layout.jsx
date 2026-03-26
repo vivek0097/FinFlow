@@ -9,8 +9,13 @@ const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
- console.log(isModalOpen, "isModalOpen")
+ console.log(isModalOpen, "isModalOpen");
 
+const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+ const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1); 
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
@@ -36,7 +41,7 @@ const Layout = () => {
     <AddTransactionModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onRefresh={() => console.log("Refreshed!")}
+        onRefresh={handleRefresh}
       />
     </div>
   );

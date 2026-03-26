@@ -7,27 +7,37 @@ import moment from 'moment';
 const COLORS = ['#6366f1', '#fb7185', '#34d399', '#fbbf24', '#a855f7', '#06b6d4'];
 
 const Dashboard = () => {
+
   const [chartData, setChartData] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const { sendRequest, loading } = useFetch();
 
   // 1. Data Fetching Logic
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      const [monthlyStats, allTx] = await Promise.all([
-        sendRequest('/transactions/stats/monthly', 'GET'),
-        sendRequest('/transactions', 'GET')
-      ]);
-      setChartData(monthlyStats);
-      setTransactions(allTx);
-    } catch (err) {
-      console.error("Dashboard Load Error:", err);
-    }
-  }, [sendRequest]);
+ const fetchDashboardData = useCallback(async () => {
+  try {
+ 
+    const [monthlyStats, allTx] = await Promise.all([
+      sendRequest('/transactions/stats/monthly', 'GET'),
+      sendRequest('/transactions', 'GET')
+    ]);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+   
+    if (monthlyStats && monthlyStats.status === 1) {
+      setChartData(monthlyStats.data); 
+    }
+    
+    if (allTx && allTx.status === 1) {
+      setTransactions(allTx.data); 
+    }
+
+  } catch (err) {
+    console.error("Dashboard Load Error:", err);
+  }
+}, [sendRequest]);
+
+useEffect(() => {
+  fetchDashboardData();
+}, [fetchDashboardData]);
 
   // 2. Summary Calculations (Derived State)
   const stats = useMemo(() => {

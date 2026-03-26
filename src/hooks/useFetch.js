@@ -20,7 +20,8 @@ const useFetch = () => {
       const response = await axios({
         url: `${BASE_URL}${url}`,
         method: method.toUpperCase(),
-        data: body, 
+        // data: body, 
+        data: (method.toUpperCase() === 'DELETE' || method.toUpperCase() === 'GET') ? undefined : body,
         headers: {
           'Content-Type': 'application/json',
          
@@ -29,7 +30,14 @@ const useFetch = () => {
       });
 
       setLoading(false);
-      return response.data;
+      // return response.data;
+
+      if (response.data && response.data.status === 0) {
+      setError(response.data.msg);
+      throw new Error(response.data.msg);
+    }
+
+    return response.data;
     }catch (err) {
       if (err.response?.status === 401) {
     // Token expire ho gaya ya invalid hai
