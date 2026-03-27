@@ -5,6 +5,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Sun, Moon, Bell, Menu, User, Plus, LogOut } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 
 
@@ -67,7 +68,7 @@ const Navbar = ({ onMenuClick, onAddClick }) => {
 
 
         <div className="flex items-center gap-4">
-        {user ? (
+        {/* {user ? (
           <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-2 rounded-xl">
             <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
               {user.name.charAt(0)}
@@ -79,6 +80,56 @@ const Navbar = ({ onMenuClick, onAddClick }) => {
           </div>
         ) : (
           <button className="bg-indigo-600 text-white px-6 py-2 rounded-xl">Login</button>
+        )} */}
+
+        {user ? (
+          <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-1.5 pr-3 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm transition-all hover:bg-slate-200 dark:hover:bg-slate-700">
+          <NavLink 
+          to="/profile" 
+          className={({ isActive }) => `
+            flex items-center gap-3 p-1.5 pr-3 rounded-2xl border transition-all duration-200 shadow-sm
+            ${isActive 
+              ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20' 
+              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-slate-700'}
+          `}
+        >
+          
+            {/* Profile Image or Initial */}
+            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold overflow-hidden shadow-inner border-2 border-white dark:border-slate-700">
+              {user.profileImage ? (
+                <img 
+                  src={user.profileImage} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-sm">{user.name.charAt(0)}</span>
+              )}
+            </div>
+
+            {/* User Info */}
+            <div className="hidden md:flex flex-col items-start leading-tight">
+              <span className="text-xs font-black dark:text-white truncate max-w-[100px]">
+                {user.name}
+              </span>
+              <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">
+                {user.role}
+              </span>
+            </div>
+</NavLink>
+            {/* Logout Button */}
+            <button 
+              onClick={logout} 
+              className="ml-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        ) : (
+          <button className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 dark:shadow-none">
+            Login
+          </button>
         )}
       </div>
       </div>

@@ -9,6 +9,8 @@ import Layout from './components/layout/Layout';
 import { Dashboard, Audit } from './pages';
 import { ThemeProvider } from './context/ThemeContext';
  import NotFound from './pages/NotFound';
+import Profile from './pages/Profile';
+import { Toaster } from 'react-hot-toast';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -40,6 +42,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Suspense fallback={<PageLoader />}><Dashboard /></Suspense> },
       { path: "audit", element: <Suspense fallback={<PageLoader />}><Audit /></Suspense> },
+      { path: "profile", element: <Suspense fallback={<PageLoader />}><Profile /></Suspense> },
+    
     ],
   },
 ]);
@@ -48,6 +52,7 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
+        <Toaster position="top-right" reverseOrder={false} />
         <RouterProvider router={router} />
       </ThemeProvider>
     </AuthProvider>
